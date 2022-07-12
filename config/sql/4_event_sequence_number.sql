@@ -1,0 +1,1 @@
+ALTER TABLE metered_zones ADD COLUMN IF NOT EXISTS event_sequence_number BIGINT NOT NULL DEFAULT 0;

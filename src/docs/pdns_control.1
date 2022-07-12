@@ -1,0 +1,188 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "PDNS_CONTROL" "1" "Jul 22, 2021" "" "PowerDNS Authoritative Server"
+.SH NAME
+pdns_control \- Control the PowerDNS nameserver
+.SH SYNOPSIS
+.sp
+\fBpdns_control\fP [\fIOPTION\fP]... \fICOMMAND\fP
+.SH DESCRIPTION
+.sp
+\fBpdns_control\fP is used to send commands to a running PowerDNS
+nameserver.
+.SH OPTIONS
+.INDENT 0.0
+.TP
+.B  \-\-help
+Show summary of options.
+.TP
+.BI \-\-chroot\fB= <DIR>
+Directory where PowerDNS is chrooted.
+.TP
+.BI \-\-config\-dir\fB= <DIR>
+Location of configuration directory (pdns.conf).
+.TP
+.BI \-\-config\-name\fB= <NAME>
+Name of this virtual configuration \- will rename the binary image.
+.TP
+.BI \-\-remote\-address\fB= <ADDRESS>
+Remote address to query.
+.TP
+.BI \-\-remote\-port\fB= <PORT>
+Remote port to query.
+.TP
+.BI \-\-secret\fB= <SECRET>
+Secret needed to connect to remote PowerDNS.
+.TP
+.BI \-\-socket\-dir\fB= <DIR>
+Where the controlsocket lives.
+.UNINDENT
+.SH COMMANDS
+.SS bind\-add\-zone \fIZONE\fP \fIFILENAME\fP
+.sp
+When using the BIND backend, add a zone. This zone is added in\-memory
+and served immediately. Note that this does not add the zone to the
+bind\-config file. \fIFILENAME\fP must be an absolute path.
+.SS bind\-domain\-extended\-status [\fIZONE\fP\&...]
+.sp
+Output an extended status of all zones, containing much more information than
+the simple zone status, like the number of records currently loaded, whether pdns
+is primary or secondary for the zone, the list of primaries, various timers, etc
+Optionally, append \fIZONE\fPs to get the status of specific zones.
+.SS bind\-domain\-status [\fIZONE\fP\&...]
+.sp
+When using the BIND backend, list status of all zones. Optionally,
+append \fIZONE\fPs to get the status of specific zones.
+.SS bind\-list\-rejects
+.sp
+When using the BIND backend, get a list of all rejected zones.
+.SS bind\-reload\-now \fIZONE\fP [\fIZONE\fP\&...]
+.sp
+When using the BIND backend, immediately reload \fIZONE\fP from disk.
+.SS ccounts
+.sp
+Show the content of the cache.
+.SS current\-config [diff]
+.sp
+Show the currently running configuration. The output has the same format as \fBpdns_server \-\-config\fP\&. With the diff option only modified options are included in the output.
+.SS cycle
+.sp
+Restart the nameserver so it reloads its configuration. Only works
+when the server is running in guardian mode.
+.SS list
+.sp
+Dump all statistics and their values in a comma separated list,
+equivalent to \fBshow *\fP\&.
+.SS list\-zones [primary,secondary,native]
+.sp
+Show a list of zones, optionally filter on the type of zones to
+show.
+.SS notify \fIZONE\fP
+.sp
+Adds \fIZONE\fP to the notification list, causing PowerDNS to send out
+notifications to the nameservers of a zone. Can be used if a secondary
+missed previous notifications or is generally hard of hearing. Use
+* to notify for all zones. (Note that you may need to escape the
+* sign in your shell.)
+.SS notify\-host \fIZONE\fP \fIADDRESS\fP
+.sp
+Same as above but with operator specified IP \fIADDRESS\fP as
+destination, to be used if you know better than PowerDNS.
+.SS ping, rping
+.sp
+Check if the server is still alive. Will return \(aqPONG\(aq when it is.
+\fBping\fP works when running inside a guardian, whereas \fBrping\fP
+works when running without a guardian.
+.SS purge [\fIRECORD\fP]
+.sp
+Purge entries from the cache. If \fIRECORD\fP ends with a dollar ($) all
+entries that end with that name are removed. If no record is
+specified the entire cache is purged.
+.SS qtypes
+.sp
+Get a count of queries per qtype on standard out.
+.SS quit
+.sp
+Tell a running pdns_server to quit.
+.SS rediscover
+.sp
+Instructs backends that new zones may have appeared in the
+database, or, in the case of the BIND backend, in named.conf.
+.SS reload
+.sp
+Instruct the server to reload all its zones, this will not add new
+zones.
+.SS remotes
+.sp
+Get the top number of remote addresses (clients).
+.SS respsizes
+.sp
+Get a histogram of the response sizes.
+.SS retrieve \fIZONE\fP [IP]
+.sp
+Retrieve secondary \fIZONE\fP from its primary. Done nearly immediately.
+If IP is specified, then retrieval is forced from the specified IP.
+Port may be specified in AFI specific manner.
+.SS set \fIVARIABLE\fP \fIVALUE\fP
+.sp
+Set the configuration parameter \fIVARIABLE\fP to \fIVALUE\fP\&. Currently
+only the query\-logging can be set.
+.SS show \fISTATISTIC\fP
+.sp
+Show a single statistic, as present in the output of the list
+command.
+.SS show \fISTATISTIC\-PREFIX\fP*
+.sp
+Show all statistics which names start with the supplied \fISTATISTIC\-PREFIX\fP,
+as a comma\-separated list. Only one (ending) wildcard is allowed.
+.SS status
+.sp
+Show usage statistics. This only works if the server is running in
+guardian mode.
+.SS token\-login \fIMODULE\fP \fISLOT\fP \fIPIN\fP
+.sp
+Log on to a PKCS#11 slot. You only need to login once per slot, even
+if you have multiple keys on single slot. Only available if PowerDNS
+was compiled with PKCS#11 support.
+.SS uptime
+.sp
+Show the uptime of the running server.
+.SS version
+.sp
+Print the version of the running pdns daemon.
+.SH SEE ALSO
+.sp
+pdns_server (1), pdnsutil (1)
+.SH AUTHOR
+PowerDNS.COM BV
+.SH COPYRIGHT
+2001-2021, PowerDNS.COM BV
+.\" Generated by docutils manpage writer.
+.

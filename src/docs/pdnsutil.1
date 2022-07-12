@@ -1,0 +1,382 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "PDNSUTIL" "1" "Jul 22, 2021" "" "PowerDNS Authoritative Server"
+.SH NAME
+pdnsutil \- PowerDNS record and DNSSEC command and control
+.SH SYNOPSIS
+.sp
+pdnsutil [OPTION]... \fICOMMAND\fP
+.SH DESCRIPTION
+.sp
+\fBpdnsutil\fP (formerly pdnssec) is a powerful command that is the
+operator\-friendly gateway into DNSSEC and zone management for PowerDNS.
+Behind the scenes, \fBpdnsutil\fP manipulates a PowerDNS backend database,
+which also means that for many databases, \fBpdnsutil\fP can be run
+remotely, and can configure key material on different servers.
+.SH OPTIONS
+.INDENT 0.0
+.TP
+.B  \-h\fP,\fB  \-\-help
+Show summary of options
+.TP
+.B  \-v\fP,\fB  \-\-verbose
+Be more verbose.
+.TP
+.B  \-\-force
+Force an action
+.TP
+.BI \-\-config\-name \ <NAME>
+Virtual configuration name
+.TP
+.BI \-\-config\-dir \ <DIR>
+Location of pdns.conf. Default is /etc/powerdns.
+.UNINDENT
+.SH COMMANDS
+.sp
+There are many available commands, this section splits them up into
+their respective uses
+.SH DNSSEC RELATED COMMANDS
+.sp
+Several commands manipulate the DNSSEC keys and options for zones. Some
+of these commands require an \fIALGORITHM\fP to be set. The following
+algorithms are supported:
+.INDENT 0.0
+.IP \(bu 2
+rsasha1
+.IP \(bu 2
+rsasha1\-nsec3\-sha1
+.IP \(bu 2
+rsasha256
+.IP \(bu 2
+rsasha512
+.IP \(bu 2
+ecdsa256
+.IP \(bu 2
+ecdsa384
+.IP \(bu 2
+ed25519
+.IP \(bu 2
+ed448
+.UNINDENT
+.INDENT 0.0
+.TP
+.B activate\-zone\-key \fIZONE\fP \fIKEY\-ID\fP
+Activate a key with id \fIKEY\-ID\fP within a zone called \fIZONE\fP\&.
+.TP
+add\-zone\-key \fIZONE\fP [\fBKSK\fP,\fBZSK\fP] [\fBactive\fP,\fBinactive\fP] [\fBpublished\fP,\fBunpublished\fP] \fIKEYBITS\fP \fIALGORITHM\fP
+Create a new key for zone \fIZONE\fP, and make it a KSK or a ZSK (default), with
+the specified algorithm. The key is inactive by default, set it to
+\fBactive\fP to immediately use it to sign \fIZONE\fP\&. The key is published
+in the zone by default, set it to \fBunpublished\fP to keep it from
+being returned in a DNSKEY query, which is useful for algorithm
+rollovers. Prints the id of the added key.
+.TP
+.B create\-bind\-db \fIFILE\fP
+Create DNSSEC database (sqlite3) at \fIFILE\fP for the BIND backend.
+Remember to set \fBbind\-dnssec\-db=*FILE*\fP in your \fBpdns.conf\fP\&.
+.TP
+.B deactivate\-zone\-key \fIZONE\fP \fIKEY\-ID\fP
+Deactivate a key with id KEY\-ID within a zone called \fIZONE\fP\&.
+.TP
+.B disable\-dnssec \fIZONE\fP
+Deactivate all keys and unset PRESIGNED in \fIZONE\fP\&.
+.TP
+.B export\-zone\-dnskey \fIZONE\fP \fIKEY\-ID\fP
+Export to standard output DNSKEY and DS of key with key id \fIKEY\-ID\fP
+within zone called \fIZONE\fP\&.
+.TP
+.B export\-zone\-ds \fIZONE\fP
+Export to standard output all KSK DS records for \fIZONE\fP\&.
+.TP
+.B export\-zone\-key \fIZONE\fP \fIKEY\-ID\fP
+Export to standard output full (private) key with key id \fIKEY\-ID\fP
+within zone called \fIZONE\fP\&. The format used is compatible with BIND
+and NSD/LDNS.
+.TP
+generate\-zone\-key {\fBKSK\fP,\fBZSK\fP} [\fIALGORITHM\fP] [\fIKEYBITS\fP]
+Generate a ZSK or KSK to stdout with specified algorithm and bits
+and print it on STDOUT. If \fIALGORITHM\fP is not set, ECDSA256 is
+used. If \fIKEYBITS\fP is not set, an appropriate keysize is selected
+for \fIALGORITHM\fP\&. Each ECC\-based algorithm supports only one valid
+\fIKEYBITS\fP value: For ECDSA256 and ED25519, it is 256; for ECDSA384,
+it is 384; and for ED448, it is 456.
+.TP
+import\-zone\-key \fIZONE\fP \fIFILE\fP {\fBKSK\fP,\fBZSK\fP}
+Import from \fIFILE\fP a full (private) key for zone called \fIZONE\fP\&. The
+format used is compatible with BIND and NSD/LDNS. \fBKSK\fP or \fBZSK\fP
+specifies the flags this key should have on import. Prints the id of
+the added key.
+.TP
+.B publish\-zone\-key \fIZONE\fP \fIKEY\-ID\fP
+Publish the key with id \fIKEY\-ID\fP within a zone called \fIZONE\fP\&.
+.TP
+.B remove\-zone\-key \fIZONE\fP \fIKEY\-ID\fP
+Remove a key with id \fIKEY\-ID\fP from a zone called \fIZONE\fP\&.
+.TP
+set\-nsec3 \fIZONE\fP [\(aq\fIHASH\-ALGORITHM\fP \fIFLAGS\fP \fIITERATIONS\fP \fISALT\fP\(aq] [\fBnarrow\fP]
+Sets NSEC3 parameters for this zone. The quoted parameters are 4
+values that are used for the the NSEC3PARAM record and decide how
+NSEC3 records are created. The NSEC3 parameters must be quoted on
+the command line. \fIHASH\-ALGORITHM\fP must be 1 (SHA\-1). Setting
+\fIFLAGS\fP to 1 enables NSEC3 opt\-out operation. Only do this if you
+know you need it. For \fIITERATIONS\fP, please consult RFC 5155, section
+10.3. And be aware that a high number might overload validating
+resolvers and that a limit can be set with \fBmax\-nsec3\-iterations\fP
+in \fBpdns.conf\fP\&. The \fISALT\fP is a hexadecimal string encoding the bits
+for the salt, or \- to use no salt. Setting \fBnarrow\fP will make PowerDNS
+send out "white lies" (RFC 7129) about the next secure record to
+prevent zone enumeration. Instead of looking it up in the database,
+it will send out the hash + 1 as the next secure record. Narrow mode
+requires online signing capabilities by the nameserver and therefore
+zone transfers are denied. If only the zone is provided as argument,
+the 4\-parameter quoted string defaults to \fB\(aq1 0 1 ab\(aq\fP\&. A sample
+commandline is: \fBpdnsutil set\-nsec3 powerdnssec.org \(aq1 1 1 ab\(aq narrow\fP\&.
+\fBWARNING\fP: If running in RSASHA1 mode (algorithm 5 or 7), switching
+from NSEC to NSEC3 will require a DS update in the parent zone.
+.TP
+.B unpublish\-zone\-key \fIZONE\fP \fIKEY\-ID\fP
+Unpublish the key with id \fIKEY\-ID\fP within a zone called \fIZONE\fP\&.
+.TP
+.B unset\-nsec3 \fIZONE\fP
+Converts \fIZONE\fP to NSEC operations. \fBWARNING\fP: If running in
+RSASHA1 mode (algorithm 5 or 7), switching from NSEC to NSEC3 will
+require a DS update at the parent zone!
+.TP
+.B set\-publish\-cds \fIZONE\fP [\fIDIGESTALGOS\fP]
+Set \fIZONE\fP to respond to queries for its CDS records. the optional
+argument \fIDIGESTALGOS\fP should be a comma\-separated list of DS
+algorithms to use. By default, this is 2 (SHA\-256). 0 will publish a
+CDS with a DNSSEC delete algorithm.
+.TP
+set\-publish\-cdnskey \fIZONE\fP [\fBdelete\fP]
+Set \fIZONE\fP to publish CDNSKEY records. Add \(aqdelete\(aq to publish a CDNSKEY
+with a DNSSEC delete algorithm.
+.TP
+.B unset\-publish\-cds \fIZONE\fP
+Set \fIZONE\fP to stop responding to queries for its CDS records.
+.TP
+.B unset\-publish\-cdnskey \fIZONE\fP
+Set \fIZONE\fP to stop publishing CDNSKEY records.
+.UNINDENT
+.SH TSIG RELATED COMMANDS
+.sp
+These commands manipulate TSIG key information in the database. Some
+commands require an \fIALGORITHM\fP, the following are available:
+.INDENT 0.0
+.IP \(bu 2
+hmac\-md5
+.IP \(bu 2
+hmac\-sha1
+.IP \(bu 2
+hmac\-sha224
+.IP \(bu 2
+hmac\-sha256
+.IP \(bu 2
+hmac\-sha384
+.IP \(bu 2
+hmac\-sha512
+.UNINDENT
+.INDENT 0.0
+.TP
+activate\-tsig\-key \fIZONE\fP \fINAME\fP {\fBprimary\fP,\fBsecondary\fP}
+Enable TSIG authenticated AXFR using the key \fINAME\fP for zone \fIZONE\fP\&.
+This sets the \fBTSIG\-ALLOW\-AXFR\fP (primary) or \fBAXFR\-MASTER\-TSIG\fP
+(secondary) zone metadata.
+.TP
+deactivate\-tsig\-key \fIZONE\fP \fINAME\fP {\fBprimary\fP,\fBsecondary\fP}
+Disable TSIG authenticated AXFR using the key \fINAME\fP for zone
+\fIZONE\fP\&.
+.TP
+.B delete\-tsig\-key \fINAME\fP
+Delete the TSIG key \fINAME\fP\&. Warning, this does not deactivate said
+key.
+.TP
+.B generate\-tsig\-key \fINAME\fP \fIALGORITHM\fP
+Generate new TSIG key with name \fINAME\fP and the specified algorithm.
+.TP
+.B import\-tsig\-key \fINAME\fP \fIALGORITHM\fP \fIKEY\fP
+Import \fIKEY\fP of the specified algorithm as \fINAME\fP\&.
+.TP
+.B list\-tsig\-keys
+Show a list of all configured TSIG keys.
+.UNINDENT
+.SH ZONE MANIPULATION COMMANDS
+.INDENT 0.0
+.TP
+.B add\-record \fIZONE\fP \fINAME\fP \fITYPE\fP [\fITTL\fP] \fICONTENT\fP
+Add one or more records of \fINAME\fP and \fITYPE\fP to \fIZONE\fP with \fICONTENT\fP
+and optional \fITTL\fP\&. If \fITTL\fP is not set, default will be used.
+.TP
+.B add\-autoprimary \fIIP\fP \fINAMESERVER\fP [\fIACCOUNT\fP]
+Add a autoprimary entry into the backend. This enables receiving zone updates from other servers.
+.TP
+.B create\-zone \fIZONE\fP
+Create an empty zone named \fIZONE\fP\&.
+.TP
+.B create\-secondary\-zone \fIZONE\fP \fIPRIMARY\fP [\fIPRIMARY\fP]..
+Create a new secondary zone \fIZONE\fP with primaries \fIPRIMARY\fP\&. All \fIPRIMARY\fPs
+need to to be space\-separated IP addresses with an optional port.
+.TP
+.B change\-secondary\-zone\-primary \fIZONE\fP \fIPRIMARY\fP [\fIPRIMARY\fP]..
+Change the primaries for secondary zone \fIZONE\fP to new primaries \fIPRIMARY\fP\&. All
+\fIPRIMARY\fPs need to to be space\-separated IP addresses with an optional port.
+.TP
+.B check\-all\-zones
+Check all zones for correctness.
+.TP
+.B check\-zone \fIZONE\fP
+Check zone \fIZONE\fP for correctness.
+.TP
+.B clear\-zone \fIZONE\fP
+Clear the records in zone \fIZONE\fP, but leave actual zone and
+settings unchanged
+.TP
+.B delete\-rrset \fIZONE\fP \fINAME\fP \fITYPE\fP
+Delete named RRSET from zone.
+.TP
+.B delete\-zone \fIZONE\fP:
+Delete the zone named \fIZONE\fP\&.
+.TP
+.B edit\-zone \fIZONE\fP
+Opens \fIZONE\fP in zonefile format (regardless of backend it was loaded
+from) in the editor set in the environment variable \fBEDITOR\fP\&. if
+\fBEDITOR\fP is empty, \fIpdnsutil\fP falls back to using \fIeditor\fP\&.
+.TP
+.B get\-meta \fIZONE\fP [\fIATTRIBUTE\fP]...
+Get zone metadata. If no \fIATTRIBUTE\fP given, lists all known.
+.TP
+.B hash\-zone\-record \fIZONE\fP \fIRNAME\fP
+This convenience command hashes the name \fIRNAME\fP according to the
+NSEC3 settings of \fIZONE\fP\&. Refuses to hash for zones with no NSEC3
+settings.
+.TP
+.B increase\-serial \fIZONE\fP
+Increases the SOA\-serial by 1. Uses SOA\-EDIT.
+.TP
+.B list\-keys [\fIZONE\fP]
+List DNSSEC information for all keys or for \fIZONE\fP\&. \-\-verbose or \-v will
+also include the keys for disabled or empty zones.
+.TP
+.B list\-all\-zones:
+List all active zone names. \-\-verbose or \-v will also include disabled
+or empty zones.
+.TP
+.B list\-zone \fIZONE\fP
+Show all records for \fIZONE\fP\&.
+.TP
+.B load\-zone \fIZONE\fP \fIFILE\fP
+Load records for \fIZONE\fP from \fIFILE\fP\&. If \fIZONE\fP already exists, all
+records are overwritten, this operation is atomic. If \fIZONE\fP doesn\(aqt
+exist, it is created.
+.TP
+.B rectify\-zone \fIZONE\fP
+Calculates the \(aqordername\(aq and \(aqauth\(aq fields for a zone called
+\fIZONE\fP so they comply with DNSSEC settings. Can be used to fix up
+migrated data. Can always safely be run, it does no harm.
+.TP
+.B rectify\-all\-zones
+Calculates the \(aqordername\(aq and \(aqauth\(aq fields for all zones so they
+comply with DNSSEC settings. Can be used to fix up migrated data.
+Can always safely be run, it does no harm.
+.TP
+.B replace\-rrset \fIZONE\fP \fINAME\fP \fITYPE\fP [\fITTL\fP] \fICONTENT\fP [\fICONTENT\fP\&..]
+Replace existing \fINAME\fP in zone \fIZONE\fP with a new set.
+.TP
+.B secure\-zone \fIZONE\fP
+Configures a zone called \fIZONE\fP with reasonable DNSSEC settings. You
+should manually run \(aqpdnsutil rectify\-zone\(aq afterwards.
+.TP
+secure\-all\-zones [\fBincrease\-serial\fP]
+Configures all zones that are not currently signed with reasonable
+DNSSEC settings. Setting \fBincrease\-serial\fP will increase the
+serial of those zones too. You should manually run \(aqpdnsutil
+rectify\-all\-zones\(aq afterwards.
+.TP
+.B set\-kind \fIZONE\fP \fIKIND\fP
+Change the kind of \fIZONE\fP to \fIKIND\fP (primary, secondary, native).
+.TP
+.B set\-account \fIZONE\fP \fIACCOUNT\fP
+Change the account (owner) of \fIZONE\fP to \fIACCOUNT\fP\&.
+.TP
+.B add\-meta \fIZONE\fP \fIATTRIBUTE\fP \fIVALUE\fP [\fIVALUE\fP]...
+Append \fIVALUE\fP to the existing \fIATTRIBUTE\fP metadata for \fIZONE\fP\&.
+Will return an error if \fIATTRIBUTE\fP does not support multiple values, use
+\fBset\-meta\fP for these values.
+.TP
+.B set\-meta \fIZONE\fP \fIATTRIBUTE\fP [\fIVALUE\fP]...
+Set zonemetadata \fIATTRIBUTE\fP for \fIZONE\fP to \fIVALUE\fP\&. An empty value
+clears it.
+.TP
+.B set\-presigned \fIZONE\fP
+Switches \fIZONE\fP to presigned operation, utilizing in\-zone RRSIGs.
+.TP
+.B show\-zone \fIZONE\fP
+Shows all DNSSEC related settings of a zone called \fIZONE\fP\&.
+.TP
+.B test\-schema \fIZONE\fP
+Test database schema, this creates the zone \fIZONE\fP
+.TP
+.B unset\-presigned \fIZONE\fP
+Disables presigned operation for \fIZONE\fP\&.
+.TP
+.B raw\-lua\-from\-content \fITYPE\fP \fICONTENT\fP
+Display record contents in a form suitable for dnsdist\(aqs \fISpoofRawAction\fP\&.
+.UNINDENT
+.SH DEBUGGING TOOLS
+.INDENT 0.0
+.TP
+.B backend\-cmd \fIBACKEND\fP \fICMD\fP [\fICMD..\fP]
+Send a text command to a backend for execution. GSQL backends will
+take SQL commands, other backends may take different things. Be
+careful!
+.TP
+.B bench\-db [\fIFILE\fP]
+Perform a benchmark of the backend\-database.
+\fIFILE\fP can be a file with a list, one per line, of zone names to use for this.
+If \fIFILE\fP is not specified, powerdns.com is used.
+.UNINDENT
+.SH OTHER TOOLS
+.INDENT 0.0
+.TP
+.B ipencrypt \fIIP\-ADDRESS\fP password
+Encrypt an IP address according to the \(aqipcipher\(aq standard
+.TP
+.B ipdecrypt \fIIP\-ADDRESS\fP password
+Encrypt an IP address according to the \(aqipcipher\(aq standard
+.UNINDENT
+.SH SEE ALSO
+.sp
+pdns_server (1), pdns_control (1)
+.SH AUTHOR
+PowerDNS.COM BV
+.SH COPYRIGHT
+2001-2021, PowerDNS.COM BV
+.\" Generated by docutils manpage writer.
+.

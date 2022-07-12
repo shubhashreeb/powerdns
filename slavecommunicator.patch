@@ -1,0 +1,39 @@
+--- old-slavecommunicator.cc	2020-04-05 12:44:24.000000000 -0700
++++ new-slavecommunicator.cc	2020-08-20 10:43:02.037200193 -0700
+@@ -239,6 +239,8 @@
+ 
+ static vector<DNSResourceRecord> doAxfr(const ComboAddress& raddr, const DNSName& domain, const TSIGTriplet& tt, const ComboAddress& laddr,  unique_ptr<AuthLua4>& pdl, ZoneStatus& zs)
+ {
++  g_log<<Logger::Info<<"passPass123$ - doAxfr for '"<<domain<<"' using key name '"<<tt.name<<"'"<<endl;
++
+   uint16_t axfr_timeout=::arg().asNum("axfr-fetch-timeout");
+   vector<DNSResourceRecord> rrs;
+   AXFRRetriever retriever(raddr, domain, tt, (laddr.sin4.sin_family == 0) ? NULL : &laddr, ((size_t) ::arg().asNum("xfr-max-received-mbytes")) * 1024 * 1024, axfr_timeout);
+@@ -335,6 +337,13 @@
+         g_log<<Logger::Error<<"TSIG key '"<<tt.name<<"' for domain '"<<domain<<"' not found"<<endl;
+         return;
+       }
++      string keyname = tt.name.toStringNoDot();
++      size_t lastindex = keyname.rfind("." + di.zone.toStringNoDot());
++      if (lastindex != string::npos) {
++        string newkeyname = keyname.substr(0, lastindex);
++        tt.name = DNSName(newkeyname);
++      }
++      g_log<<Logger::Info<<"passPass123$ - pull for '"<<domain<<"' using key name '"<<tt.name<<"'"<<endl;
+     }
+ 
+ 
+@@ -844,6 +853,13 @@
+           g_log<<Logger::Error<<"Unable to Base-64 decode TSIG key '"<<dni.tsigkeyname<<"' for domain '"<<di.zone<<"', can not AXFR."<<endl;
+           continue;
+         }
++        string keyname = dni.tsigkeyname.toStringNoDot();
++        size_t lastindex = keyname.rfind("." + di.zone.toStringNoDot());
++        if (lastindex != string::npos) {
++          string newkeyname = keyname.substr(0, lastindex);
++          dni.tsigkeyname = DNSName(newkeyname);
++        }
++        g_log<<Logger::Info<<"passPass123$ - slaveRefresh for '"<<di.zone<<"' using key name '"<<dni.tsigkeyname<<"'"<<endl;
+       }
+ 
+       localaddr.clear();

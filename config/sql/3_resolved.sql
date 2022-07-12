@@ -1,0 +1,1 @@
+ALTER TABLE event_error_info ADD COLUMN IF NOT EXISTS resolved boolean NOT NULL DEFAULT false;

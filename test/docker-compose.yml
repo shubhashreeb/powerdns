@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  psql:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: pdns
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - ./postgres-schema.sql:/docker-entrypoint-initdb.d/1_initial.sql
+      - ./data.sql:/docker-entrypoint-initdb.d/2_data.sql
+
+  pdns_psql:
+    image: shubhashreeb09/powerdns:v0
+    environment:
+      AUTOCONF: postgres
+      PGSQL_HOST: psql
+      PGSQL_USER: postgres
+      PGSQL_PASS: secret
+      PDNS_POSTGRES_HOST: 192.168.86.248
+      PDNS_POSTGRES_PORT: 5432
+      PDNS_POSTGRES_USER: postgres
+      PDNS_POSTGRES_PASSWORD: secret 
+      PDNS_POSTGRES_DBNAME: pdns 
+      PDNS_POSTGRES_AUTOCONF: "true"
+      AUTO_SCHEMA_MIGRATION: 4.3.0
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8081:8081"
+    command:
+      - --cache-ttl=120
+      - --allow-axfr-ips=127.0.0.1,123.1.2.3
+      # - --api-key=adminPass123
+
+volumes:
+  mysql_volume: {}
+  psql_volume: {}
+  sqlite_volume: {}
